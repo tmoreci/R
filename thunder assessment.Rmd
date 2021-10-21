@@ -1,0 +1,88 @@
+---
+title: "Thunder Assessment"
+output:
+  html_document:
+    df_print: paged
+---
+
+Split the Dataframe into a subset for each team
+
+```{r}
+shots = read.csv("shots_data.csv")
+shots = data.frame(shots)
+teamA = subset(shots, team == "Team A")
+teamB = subset(shots, team == "Team B")
+dist = function(x,y){
+  hyp = (x^2 + y^2)^0.5
+  return(hyp)
+}
+```
+
+Create subsets for each team of Corner threes, Non-Corner threes, and two pointers.
+
+```{r}
+teamA.C3 = subset(teamA, abs(x)> 22 & y <= 7.8)
+teamB.C3 = subset(teamB, abs(x)> 22 & y <= 7.8)
+teamA.NC3 = subset(teamA, dist(abs(x),y)>23.75 & y > 7.8)
+teamB.NC3 = subset(teamB, dist(abs(x),y)>23.75 & y > 7.8)
+teamA.2PT = subset(teamA, y<= 7.8 & abs(x)<= 22 | y > 7.8 & dist(abs(x),y)<=23.75)
+teamB.2PT = subset(teamB, y<= 7.8 & abs(x)<= 22 | y > 7.8 & dist(abs(x),y)<=23.75)
+```
+
+Shot Distribution for Team A
+===
+```{r}
+nrow(teamA.2PT)/nrow(teamA) #2 point shot
+nrow(teamA.NC3)/nrow(teamA) #Non-Corner three 
+nrow(teamA.C3)/nrow(teamA) #Corner three 
+
+```
+Shot Distribution for Team B
+===
+```{r}
+nrow(teamB.2PT)/nrow(teamB) # 2-point shot
+nrow(teamB.NC3)/nrow(teamB) #Non-Corner three
+nrow(teamB.C3)/nrow(teamB) #Corner three
+
+```
+
+EFG % Function
+===
+```{r}
+efg = function(x,y,three = FALSE){
+  x1 = nrow(x)
+  y1 = nrow(y)
+  if (three == TRUE)
+    fg = (x1 + 0.5*x1)/y1
+  else(fg = x1/y1)
+  return(fg)
+}
+```
+
+Create Subsets of Made Shots
+===
+```{r}
+twoMadeA = subset(teamA.2PT, fgmade == 1)
+NC3MadeA = subset(teamA.NC3, fgmade == 1)
+C3MadeA = subset(teamA.C3, fgmade == 1)
+
+twoMadeB = subset(teamB.2PT, fgmade == 1)
+NC3MadeB = subset(teamB.NC3, fgmade == 1)
+C3MadeB = subset(teamB.C3, fgmade == 1)
+```
+
+EFG in different zones for team A
+===
+```{r}
+efg(twoMadeA,teamA.2PT) #EFG for two pointers
+efg(NC3MadeA,teamA.NC3, three = TRUE) #EFG for Non-Corner threes
+efg(C3MadeA,teamA.C3, three = TRUE) #EFG for Corner threes
+```
+
+EFG in different zones for team B
+===
+```{r}
+efg(twoMadeB,teamB.2PT) #EFG for two pointers
+efg(NC3MadeB,teamB.NC3,three = TRUE) #EFG for Non-Corner threes
+efg(C3MadeB,teamB.C3, three = TRUE) #EFG for Corner threes
+```
